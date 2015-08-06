@@ -1,6 +1,7 @@
 # jupiter-orm-mongo
 
-[![Build Status](https://travis-ci.org/zoilorys/jupiter-orm-mongo.svg?branch=master)](https://travis-ci.org/zoilorys/jupiter-orm-mongo)[![Coverage Status](https://coveralls.io/repos/zoilorys/jupiter-orm-mongo/badge.svg?branch=master&service=github)](https://coveralls.io/github/zoilorys/jupiter-orm-mongo?branch=master)
+[![Build Status](https://travis-ci.org/zoilorys/jupiter-orm-mongo.svg?branch=master)](https://travis-ci.org/zoilorys/jupiter-orm-mongo)
+[![Coverage Status](https://coveralls.io/repos/zoilorys/jupiter-orm-mongo/badge.svg?branch=master&service=github)](https://coveralls.io/github/zoilorys/jupiter-orm-mongo?branch=master)
 
 ## API
 
@@ -8,13 +9,14 @@
 
 Returns adapter API object.
 
-**Arguments**<br />
-{ Object } **options** - object with properties for connection.
+**Arguments**
+**options** - { Object } object with properties for connection.
 
-Available options:<br />
-{ String } **host** - host name without protocol, e.g. '127.0.0.1'<br />
-{ Number } **port** - port of host server to connect<br />
-{ String } **database** - database name of DB to connect<br />
+Available options:
+
+**host** - { String } host name without protocol, e.g. '127.0.0.1'
+**port** - { Number } port of host server to connect
+**database** - { String } database name of DB to connect
 
 **Example**
 ```javascript
@@ -41,8 +43,9 @@ let ORM = Factory({
 
 Returns Query interface of adapter for selected collection.
 
-**Arguments**<br />
-{ String } **collection** - name of collection to query.
+**Arguments**
+
+**collection** { String } - name of collection to query.
 
 **Example**
 ```javascript
@@ -76,9 +79,10 @@ Factory({
 
 Returns list of documents from collection, by query clause.
 
-**Arguments**<br />
-{ Object } **query** - object, that contains query сonditions.<br />
-{ Object } **opts** - options for search, e.g. sort, limit, skip.
+**Arguments**
+
+**query** - { Object } object, that contains query сonditions.
+**opts** - { Object } options for search, e.g. sort, limit, skip.
 
 **Example**
 ```javascript
@@ -96,9 +100,10 @@ Query.find({
 
 Return document from collection, by query clause
 
-**Arguments**<br />
-{ Object } **query** - object, that contains query сonditions.<br />
-{ Object } **opts** - options for search, e.g. sort, limit, skip.
+**Arguments**
+
+**query** - { Object } object, that contains query сonditions.
+**opts** - { Object } options for search, e.g. sort, limit, skip.
 
 **Example**
 ```javascript
@@ -115,9 +120,10 @@ Query.findOne({
 
 Insert one or many documents into collection
 
-**Arguments**<br />
-{ Object | Array } **document** - document or documents list for inserting<br />
-{ Object }         **opts** - additional options.
+**Arguments**
+
+**document** - { Object | Array } document or documents list for inserting
+**opts** - { Object } additional options.
 
 **Example**
 ```javascript
@@ -135,8 +141,9 @@ Query.insert([{key1: 'value1'}, {key2: 'value2'}])
 
 Remove one document from collection
 
-**Arguments**<br />
-{ Object } **query** - selector clause for removing<br />
+**Arguments**
+
+{ Object } **query** - selector clause for removing
 { Object } **opts** - additional options.
 
 **Example**
@@ -153,9 +160,10 @@ Query.deleteOne({key: 'value'}).exec().then(console.log.bind(console));
 
 Remove many documents from collection
 
-**Arguments**<br />
-{ Object } **query** -  selector clause for removing<br />
-{ Object } **opts** - additional options.
+**Arguments**
+
+**query** - { Object } selector clause for removing
+**opts** - { Object } additional options.
 
 **Example**
 ```javascript
@@ -171,10 +179,11 @@ Query.deleteMany({key: 'value'}).exec().then(console.log.bind(console));
 
 Update one document from collection
 
-**Arguments**<br />
-{ Object } **query** - selector clause for updating<br />
-{ Object } **value** - updated value for document<br />
-{ Object } **opts** - additional options
+**Arguments**
+
+**query** - { Object } selector clause for updating
+**value** - { Object } updated value for document
+**opts** - { Object } additional options
 
 **Example**
 ```javascript
@@ -190,10 +199,11 @@ Query.updateOne({key: 'value', { key: 'changedValue' }})
 
 Update all documents from collection
 
-**Arguments**<br />
-{ Object } **filter** - selector clause for updating<br />
-{ Object } **values** - updated value for documents<br />
-{ Object } **opts** - additional options
+**Arguments**
+
+**filter** - { Object } selector clause for updating
+**values** - { Object } updated value for documents
+**opts** - { Object } additional options
 
 **Example**
 ```javascript
