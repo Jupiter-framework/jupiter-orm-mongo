@@ -1,14 +1,11 @@
 
 import { format as formatUrl } from 'url';
 
-import { partial, merge, partialRight, ifElse, is } from 'ramda';
+import { partial, partialRight, compose, ifElse, is } from 'ramda';
 import { Promise } from 'es6-promise';
 import { MongoClient } from 'mongodb';
 
-import {
-  registerHook,
-  getHooks
-} from './hooks';
+import { hooks } from './hooks';
 
 /**
  * Return host from options or default host
@@ -28,6 +25,16 @@ function getHost(host) {
  */
 function getPort(port) {
   return port || 27017;
+}
+
+/**
+ * Return database name from options or default
+ *
+ * @access  private
+ * @param   { String }  [db='test']  DB to connect to mongod
+ */
+function getDbUrl(db) {
+  return db || 'test';
 }
 
 /**
@@ -62,21 +69,13 @@ function buildConnectionUrl(options) {
   }
 
   return formatUrl({
-    protocol: 'mongodb://',
+    protocol: 'mongodb',
+    slashes: true,
     hostname: getHost(options.host),
     port: getPort(options.port),
+    path: getDbUrl(options.database),
     auth: getAuth(options.auth),
   });
-}
-
-/**
- * Create collection in database
- *
- * @param { MongoClient.Db }  db              Instance if database
- * @param { String }          collectionName  Name of collection
- */
-function createCollection(db, collectionName) {
-  return db.createCollection(collectionName);
 }
 
 /**
@@ -92,26 +91,70 @@ function QueryFactory(db, collectionName) {
   /**
    * Return executor
    */
-  function ExecuteFactory(queryFunc, hookName) {
+  function ExecuteFactory(queryFunc, arg) {
     return {
       exec: function() {
-        return Promise.resolve(queryFunc());
+        return Promise.resolve(arg)
+          .then(queryFunc);
       },
     };
   }
+
+  function composer(func, hookName) {
+    return compose(
+      hooks.execAfterHooks(hookName),
+      func,
+      hooks.execBeforeHooks(hookName)
+      );
+  }
+
+  /**
+   * Find one document
+   *
+   * @access private
+   */
+  function findOne(queryObj, opts) {
+    return db.collection(collectionName).findOne(queryObj, opts ? opts : {});
+  }
+
+  /**
+   * Find many documents
+   *
+   * @access private
+   */
+  function find(queryObj, opts) {
+    return db.collection(collectionName)
+      .find(queryObj, opts ? opts : {}).toArray();
+  }
+
+  /**
+   * Find one document in database
+   */
+  query.findOne = function(queryObj, opts) {
+    return ExecuteFactory(
+      composer(partialRight(findOne, opts), 'find'),
+      queryObj
+      );
+  };
+
+  /**
+   * Find many documents in database
+   */
+  query.find = function(queryObj, opts) {
+    return ExecuteFactory(
+      composer(partialRight(find, opts), 'find'),
+      queryObj
+      );
+  };
+
 
   /**
    * Create one document
    *
    * @access  private
    */
-  function createOne(doc, opts) {
-    return function() {
-      return Promise.resolve(doc)
-        .then(
-          partialRight(db[collectionName].insertOne, opts)
-        );
-    };
+  function insertOne(doc, opts) {
+    return db.collection(collectionName).insertOne(doc, opts ? opts : {});
   }
 
   /**
@@ -119,26 +162,105 @@ function QueryFactory(db, collectionName) {
    *
    * @access  private
    */
-  function createMany(docs, opts) {
-    return function() {
-      return Promise.resolve(docs)
-        .then(
-          partialRight(db[collectionName].insertMany, opts)
-        );
-    };
+  function insertMany(docs, opts) {
+    return db.collection(collectionName).insertMany(docs, opts ? opts : {});
   }
 
   /**
    * Create one or many documents in database
    */
   query.insert = function(docs, opts) {
-    return ExecuteFactory(ifElse(
-      is(Array, docs),
-      createMany(docs, opts),
-      createOne(docs, opts)
-    )(docs), 'create');
+    return ExecuteFactory(
+      composer(
+        ifElse(function() {
+            return is(Array, docs);
+          },
+          partialRight(insertMany, opts),
+          partialRight(insertOne, opts)
+        ),
+        'insert'
+      ),
+      docs
+    );
   };
 
+  /**
+   * Update one document
+   *
+   * @access  private
+   */
+  function updateOne(queryObj, updates, opts) {
+    return db.collection(collectionName)
+      .updateOne(queryObj, updates, opts ? opts : {});
+  }
+
+  /**
+   * Update many documents
+   *
+   * @access  private
+   */
+  function updateMany(queryObj, updates, opts) {
+    return db.collection(collectionName)
+      .updateMany(queryObj, updates, opts ? opts : {});
+  }
+
+  /**
+   * Update one document in database
+   */
+  query.updateOne = function(queryObj, updates, opts) {
+    return ExecuteFactory(
+        composer(partialRight(updateOne, updates, opts), 'update'),
+        queryObj
+      );
+  };
+
+  /**
+   * Update many documents in database
+   */
+  query.updateMany = function(queryObj, updates, opts) {
+    return ExecuteFactory(
+      composer(partialRight(updateMany, updates, opts), 'update'),
+      queryObj
+    );
+  };
+
+  /**
+   * Delete one document
+   *
+   * @access  private
+   */
+  function deleteOne(queryObj, opts) {
+    return db.collection(collectionName).deleteOne(queryObj, opts ? opts : {});
+  }
+
+  /**
+   * Delete many documents
+   *
+   * @access  private
+   */
+  function deleteMany(queryObj, opts) {
+    return db.collection(collectionName).deleteMany(queryObj, opts ? opts : {});
+  }
+
+  /**
+   * Delete one document in database
+   */
+  query.deleteOne = function(queryObj, opts) {
+    return ExecuteFactory(
+      composer(partialRight(deleteOne, opts), 'delete'),
+      queryObj
+      );
+  };
+
+  /**
+   * Delete many documents in database
+   */
+  query.deleteMany = function(queryObj, opts) {
+    return ExecuteFactory(
+      composer(partialRight(deleteMany, opts), 'delete'),
+      queryObj
+      );
+  };
 
   return query;
 }
@@ -157,9 +279,9 @@ export function Factory(options) {
     return db.close();
   };
 
-  adapter.connect = function(opts) {
+  adapter.connect = function() {
     return MongoClient.connect(
-      buildConnectionUrl(merge(options, opts))
+      buildConnectionUrl(options)
     ).then(function(db) {
       adapter.getDatabase = function() {
         return db;

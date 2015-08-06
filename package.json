@@ -1,10 +1,10 @@
 {
   "name": "jupiter-orm-mongo",
-  "version": "0.0.6",
+  "version": "0.1.19",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "mocha --require babel/register --recursive",
+    "test": "isparta cover _mocha --include src/*.js --report lcovonly -- test/*.js -r babel/register && cat ./coverage/lcov.info | coveralls && rm -r ./coverage",
     "watch": "./node_modules/.bin/mocha --recursive --require babel/register --watch"
   },
   "repository": {
@@ -20,11 +20,13 @@
   "devDependencies": {
     "babel": "^5.8.19",
     "chai": "^3.2.0",
-    "mocha": "^2.2.5"
+    "coveralls": "^2.11.3",
+    "isparta": "^3.0.3",
+    "mocha": "^2.2.5",
+    "mocha-lcov-reporter": "0.0.2"
   },
   "dependencies": {
     "es6-promise": "^2.3.0",
-    "immutable": "^3.7.4",
     "mongodb": "^2.0.39",
     "ramda": "^0.17.1"
   }
