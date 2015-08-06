@@ -1,0 +1,33 @@
+{
+  "name": "jupiter-orm-mongo",
+  "version": "0.1.19",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "isparta cover _mocha --include src/*.js --report lcovonly -- test/*.js -r babel/register && cat ./coverage/lcov.info | coveralls && rm -r ./coverage",
+    "watch": "./node_modules/.bin/mocha --recursive --require babel/register --watch"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Rastopyr/jupiter-orm-mongo.git"
+  },
+  "author": "Rastopyr <rastopyr@gmail.com> (http://rastopyr.github.io/)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Rastopyr/jupiter-orm-mongo/issues"
+  },
+  "homepage": "https://github.com/Rastopyr/jupiter-orm-mongo",
+  "devDependencies": {
+    "babel": "^5.8.19",
+    "chai": "^3.2.0",
+    "coveralls": "^2.11.3",
+    "isparta": "^3.0.3",
+    "mocha": "^2.2.5",
+    "mocha-lcov-reporter": "0.0.2"
+  },
+  "dependencies": {
+    "es6-promise": "^2.3.0",
+    "mongodb": "^2.0.39",
+    "ramda": "^0.17.1"
+  }
+}
